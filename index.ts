@@ -30,7 +30,9 @@ const isInt = (str: string) => {
 
 const parseWikiProblem = async (page: string) => {
     const {
+        title,
         text: { "*": wikiPage },
+        categories
     } = await fetchWikiPage(page);
 
     let $ = cheerio.load(wikiPage);
@@ -51,9 +53,11 @@ const parseWikiProblem = async (page: string) => {
         })
         .join("");
 
-    console.log(wikiProblem);
-
-    return wikiProblem;
+    return {
+        title: title,
+        problem: wikiProblem,
+        category: categories[0]["*"]
+    };
 };
 
 const renderKatex = (htmlString: string) => {
@@ -63,14 +67,11 @@ const renderKatex = (htmlString: string) => {
         let latexSrc = $(el).attr('alt');
 
         latexSrc = latexSrc.replaceAll('$', '').replaceAll('\\[', '').replaceAll('\\]', '');
-        console.log(latexSrc); 
 
         let newEl = katex.renderToString(latexSrc, {
             throwOnError: false,
             displayMode: $(el).attr('class') == 'latexcenter'
         });
-
-        console.log(newEl);
         
         return $(newEl);
     });
@@ -79,6 +80,9 @@ const renderKatex = (htmlString: string) => {
 };
 
 (async () => {
-    const problem = await parseWikiProblem("2020_AMC_10A_Problems/Problem_8");
-    console.log(renderKatex(problem));
+    const problem = await parseWikiProblem("2013_AMC_12B_Problems/Problem_17");
+    console.log(problem)
+    console.log(renderKatex(problem.problem));
 })();
+
+export { fetchWikiPage, parseWikiProblem, renderKatex};

@@ -21,7 +21,7 @@ const isInt = (str) => {
         Number.isInteger(parseFloat(str)));
 };
 const parseWikiProblem = async (page) => {
-    const { text: { "*": wikiPage }, } = await fetchWikiPage(page);
+    const { title, text: { "*": wikiPage }, categories } = await fetchWikiPage(page);
     let $ = cheerio.load(wikiPage);
     let problemHTML = $('h2:has(span[id="Problem"])').nextUntil('p:has(a:contains("Solution")), h2');
     let wikiProblem = Object.entries($(problemHTML))
@@ -33,25 +33,28 @@ const parseWikiProblem = async (page) => {
         return `<${element["0"].name}>${element.html()}</${element["0"].name}>`;
     })
         .join("");
-    console.log(wikiProblem);
-    return wikiProblem;
+    return {
+        title: title,
+        problem: wikiProblem,
+        category: categories[0]["*"]
+    };
 };
 const renderKatex = (htmlString) => {
     let $ = cheerio.load(htmlString);
     let latexImages = $('img.latexcenter,img.latex').replaceWith((index, el) => {
         let latexSrc = $(el).attr('alt');
         latexSrc = latexSrc.replaceAll('$', '').replaceAll('\\[', '').replaceAll('\\]', '');
-        console.log(latexSrc);
         let newEl = katex.renderToString(latexSrc, {
             throwOnError: false,
             displayMode: $(el).attr('class') == 'latexcenter'
         });
-        console.log(newEl);
         return $(newEl);
     });
     return $.html();
 };
 (async () => {
-    const problem = await parseWikiProblem("2020_AMC_10A_Problems/Problem_8");
-    console.log(renderKatex(problem));
+    const problem = await parseWikiProblem("2013_AMC_12B_Problems/Problem_17");
+    console.log(problem);
+    console.log(renderKatex(problem.problem));
 })();
+export { fetchWikiPage, parseWikiProblem, renderKatex };
