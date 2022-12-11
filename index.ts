@@ -32,12 +32,13 @@ const parseWikiProblem = async (page: string) => {
     const {
         title,
         text: { "*": wikiPage },
-        categories
+        categories,
+        links
     } = await fetchWikiPage(page);
 
-    let $ = cheerio.load(wikiPage);
+    const $ = cheerio.load(wikiPage);
 
-    let problemHTML = $('h2:has(span[id="Problem"])').nextUntil(
+    let problemHTML = $('h2:has(span:contains("Problem"))').nextUntil(
         'p:has(a:contains("Solution")), h2'
     );
 
@@ -52,7 +53,16 @@ const parseWikiProblem = async (page: string) => {
             }>`;
         })
         .join("");
-
+    
+    if (!wikiProblem){
+        console.log("Parsing failed for " + title + ", checking redirects...");
+        const redirectPage = $('.redirectText a').attr('title');
+        if (redirectPage){
+            return await parseWikiProblem(redirectPage);
+        }
+        return;
+    }
+    
     return {
         title: title,
         problem: wikiProblem,
@@ -130,12 +140,12 @@ const listAllProblems = async () => {
 })();
 
 
+**/
 (async () => {
-    const problem = await parseWikiProblem("2013_AMC_12B_Problems/Problem_17");
+    const problem = await parseWikiProblem("2003 AMC 12B Problems/Problem 16");
     console.log(problem);
-    console.log(renderKatex(problem.problem));
+    // console.log(renderKatex(problem.problem));
 })();
 
-**/
 
 export { fetchWikiPage, parseWikiProblem, renderKatex, listAllProblems };
