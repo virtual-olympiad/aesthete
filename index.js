@@ -36,12 +36,12 @@ const parseWikiProblem = async (page) => {
     return {
         title: title,
         problem: wikiProblem,
-        category: categories[0]["*"]
+        category: categories?.[0]?.["*"]
     };
 };
 const renderKatex = (htmlString) => {
     let $ = cheerio.load(htmlString);
-    let latexImages = $('img.latexcenter,img.latex').replaceWith((index, el) => {
+    $('img.latexcenter,img.latex').replaceWith((index, el) => {
         let latexSrc = $(el).attr('alt');
         latexSrc = latexSrc.replaceAll('$', '').replaceAll('\\[', '').replaceAll('\\]', '');
         let newEl = katex.renderToString(latexSrc, {
@@ -52,9 +52,54 @@ const renderKatex = (htmlString) => {
     });
     return $.html();
 };
+const listAllProblems = async () => {
+    let body, amc8 = [], amc10 = [], amc12 = [], aime = [];
+    do {
+        let res = await got(api + "action=query&list=allpages&aplimit=max&format=json&apcontinue=" + (body?.continue?.apcontinue ?? ""));
+        body = JSON.parse(res.body);
+        for (let page of body?.query?.allpages) {
+            let { title } = page;
+            if (title.match(/^2\d{3} AIME I{1,2} Problems\/Problem \d+/)) {
+                aime.push(title);
+                continue;
+            }
+            if (title.match(/^2\d{3} AMC 8 Problems\/Problem \d+/)) {
+                amc8.push(title);
+                continue;
+            }
+            if (title.match(/^2\d{3} AMC 10[AB] Problems\/Problem \d+/)) {
+                amc10.push(title);
+                continue;
+            }
+            if (title.match(/^2\d{3} AMC 12[AB] Problems\/Problem \d+/)) {
+                amc12.push(title);
+                continue;
+            }
+        }
+    } while (body?.continue);
+    return {
+        amc8, amc10, amc12, aime
+    };
+};
+/**
+ *
+(async () => {
+    let problemCache = await listAllProblems();
+    let { amc8, amc10, amc12, aime } = problemCache;
+
+    fs.writeFileSync('problems.json', JSON.stringify(problemCache, null, 4));
+    fs.writeFileSync('amc8Problems.json', JSON.stringify(amc8, null, 4));
+    fs.writeFileSync('amc10Problems.json', JSON.stringify(amc10, null, 4));
+    fs.writeFileSync('amc12Problems.json', JSON.stringify(amc12, null, 4));
+    fs.writeFileSync('aimeProblems.json', JSON.stringify(aime, null, 4));
+})();
+
+
 (async () => {
     const problem = await parseWikiProblem("2013_AMC_12B_Problems/Problem_17");
     console.log(problem);
     console.log(renderKatex(problem.problem));
 })();
-export { fetchWikiPage, parseWikiProblem, renderKatex };
+
+**/
+export { fetchWikiPage, parseWikiProblem, renderKatex, listAllProblems };
