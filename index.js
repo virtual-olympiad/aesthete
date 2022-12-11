@@ -102,11 +102,11 @@ const listAllProblems = async () => {
     fs.writeFileSync('aimeProblems.json', JSON.stringify(aime, null, 4));
 })();
 
-
-**/
 (async () => {
     const problem = await parseWikiProblem("2003 AMC 12B Problems/Problem 16");
     console.log(problem);
     // console.log(renderKatex(problem.problem));
 })();
+
+**/
 export { fetchWikiPage, parseWikiProblem, renderKatex, listAllProblems };
