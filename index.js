@@ -53,7 +53,7 @@ const parseKatex = (htmlString) => {
         let latexSrc = $(el).attr('alt');
         if (latexSrc.includes('[asy]')) {
             // Asymptote Raster  
-            return $(el);
+            return $(el).addClass('katex-image');
         }
         latexSrc = latexSrc.replaceAll('$', '').replaceAll('\\[', '').replaceAll('\\]', '');
         let newEl;
@@ -72,8 +72,7 @@ const parseKatex = (htmlString) => {
                 console.error(e);
             }
         }
-        $(newEl).addClass('katex-image');
-        return $(newEl);
+        return $(newEl).addClass('katex-image');
     });
     return $.html();
 };
@@ -119,11 +118,12 @@ const listAllProblems = async () => {
     fs.writeFileSync('aimeProblems.json', JSON.stringify(aime, null, 4));
 })();
 
+
+**/
 (async () => {
-    const problem = await parseWikiProblem("2008_AMC_12B_Problems/Problem_2");
+    const problem = await parseWikiProblem("2015 AIME I Problems/Problem 6");
     console.log(problem.problem);
-    console.log("---")
+    console.log("---");
     console.log(parseKatex(problem.problem));
 })();
-**/
 export { fetchWikiPage, parseWikiProblem, parseKatex, listAllProblems };
