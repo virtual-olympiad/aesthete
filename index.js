@@ -58,7 +58,7 @@ const parseKatex = (htmlString) => {
         latexSrc = latexSrc.replaceAll('$', '').replaceAll('\\[', '').replaceAll('\\]', '');
         let newEl;
         try {
-            let newEl = katex.renderToString(latexSrc, {
+            newEl = katex.renderToString(latexSrc, {
                 throwOnError: true,
                 displayMode: $(el).attr('class') == 'latexcenter'
             });
@@ -119,11 +119,10 @@ const listAllProblems = async () => {
 })();
 
 (async () => {
-    const problem = await parseWikiProblem("2008 AIME I Problems/Problem 3");
+    const problem = await parseWikiProblem("2008_AMC_12B_Problems/Problem_2");
     console.log(problem.problem);
     console.log("---")
     console.log(parseKatex(problem.problem));
 })();
-
 **/
 export { fetchWikiPage, parseWikiProblem, parseKatex, listAllProblems };
