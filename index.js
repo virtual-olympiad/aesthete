@@ -72,6 +72,7 @@ const parseKatex = (htmlString) => {
                 console.error(e);
             }
         }
+        $(newEl).addClass('katex-image');
         return $(newEl);
     });
     return $.html();
