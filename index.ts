@@ -39,7 +39,7 @@ const parseWikiProblem = async (page: string) => {
     const $ = cheerio.load(wikiPage);
 
     let problemHTML = $('h2:has(span:contains("Problem"))').nextUntil(
-        'p:has(a:contains("Solution")), h2'
+        'p:has(a:contains("Solution")), h2, .toc'
     );
 
     let wikiProblem = Object.entries($(problemHTML))
@@ -55,7 +55,7 @@ const parseWikiProblem = async (page: string) => {
         .join("");
     
     if (!wikiProblem){
-        console.log("Parsing failed for " + title + ", checking redirects...");
+        console.log("Fetching failed for " + title + ", checking redirects...");
         const redirectPage = $('.redirectText a').attr('title');
         if (redirectPage){
             return await parseWikiProblem(redirectPage);
@@ -66,22 +66,38 @@ const parseWikiProblem = async (page: string) => {
     return {
         title: title,
         problem: wikiProblem,
-        category: categories?.[0]?.["*"]
+        category: categories?.[0]?.["*"] ?? null
     };
 };
 
-const renderKatex = (htmlString: string) => {
+const parseKatex = (htmlString: string) => {
     let $ = cheerio.load(htmlString);
 
     $('img.latexcenter,img.latex').replaceWith((index, el) => {
         let latexSrc = $(el).attr('alt');
+        
+        if (latexSrc.includes('[asy]')){
+            // Asymptote Raster  
+            return $(el);
+        }
 
         latexSrc = latexSrc.replaceAll('$', '').replaceAll('\\[', '').replaceAll('\\]', '');
 
-        let newEl = katex.renderToString(latexSrc, {
-            throwOnError: false,
-            displayMode: $(el).attr('class') == 'latexcenter'
-        });
+        let newEl;
+
+        try {
+            let newEl = katex.renderToString(latexSrc, {
+                throwOnError: true,
+                displayMode: $(el).attr('class') == 'latexcenter'
+            });
+        } catch (e) {
+            if (e instanceof katex.ParseError) {
+                // Katex Parsing Error
+                newEl = $(el);
+            } else {
+                console.error(e);
+            }
+        }
         
         return $(newEl);
     });
@@ -140,11 +156,12 @@ const listAllProblems = async () => {
 })();
 
 (async () => {
-    const problem = await parseWikiProblem("2003 AMC 12B Problems/Problem 16");
-    console.log(problem);
-    // console.log(renderKatex(problem.problem));
+    const problem = await parseWikiProblem("2008 AIME I Problems/Problem 3");
+    console.log(problem.problem);
+    console.log("---")
+    console.log(parseKatex(problem.problem));
 })();
 
 **/
 
-export { fetchWikiPage, parseWikiProblem, renderKatex, listAllProblems };
+export { fetchWikiPage, parseWikiProblem, parseKatex, listAllProblems };
