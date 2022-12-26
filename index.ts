@@ -41,7 +41,9 @@ const parseWikiProblem = async (page: string) => {
     // :header:has(span:contains("Problem"))
     let problemHTML = $(".mw-parser-output")
         .children()
-        .not('.toc')
+        .not('.toc') // table of contents
+        .not('dl') // redirect message
+        .not(':header')
         .first()
         .nextUntil('p:has(a:contains("Solution")), :header, .toc')
         .addBack();
@@ -178,7 +180,7 @@ const listAllProblems = async () => {
 **/
 
 (async () => {
-    const problem = await parseWikiProblem("2000 AMC 8 Problems/Problem 6");
+    const problem = await parseWikiProblem("2005 AMC 10B Problems/Problem 19");
     console.log(parseKatex(problem.problem));
 })();
 
