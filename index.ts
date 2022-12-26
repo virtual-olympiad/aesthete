@@ -1,5 +1,5 @@
 import got from "got";
-import cheerio from "cheerio";
+import { load } from "cheerio";
 import katex from "katex";
 
 /** 
@@ -33,14 +33,18 @@ const parseWikiProblem = async (page: string) => {
         title,
         text: { "*": wikiPage },
         categories,
-        links
+        links,
     } = await fetchWikiPage(page);
 
-    const $ = cheerio.load(wikiPage);
+    const $ = load(wikiPage);
 
-    let problemHTML = $('h2:has(span:contains("Problem"))').nextUntil(
-        'p:has(a:contains("Solution")), h2, .toc'
-    );
+    // :header:has(span:contains("Problem"))
+    let problemHTML = $(".mw-parser-output")
+        .children()
+        .not('.toc')
+        .first()
+        .nextUntil('p:has(a:contains("Solution")), :header, .toc')
+        .addBack();
 
     let wikiProblem = Object.entries($(problemHTML))
         .map((el) => {
@@ -53,42 +57,47 @@ const parseWikiProblem = async (page: string) => {
             }>`;
         })
         .join("");
-    
-    if (!wikiProblem){
+
+    console.log(wikiProblem);
+
+    if (!wikiProblem) {
         console.log("Fetching failed for " + title + ", checking redirects...");
-        const redirectPage = $('.redirectText a').attr('title');
-        if (redirectPage){
+        const redirectPage = $(".redirectText a").attr("title");
+        if (redirectPage) {
             return await parseWikiProblem(redirectPage);
         }
         return;
     }
-    
+
     return {
         title: title,
         problem: wikiProblem,
-        category: categories?.[0]?.["*"] ?? null
+        category: categories?.[0]?.["*"] ?? null,
     };
 };
 
 const parseKatex = (htmlString: string) => {
-    let $ = cheerio.load(htmlString);
+    let $ = load(htmlString);
 
-    $('img.latexcenter,img.latex').replaceWith((index, el) => {
-        let latexSrc = $(el).attr('alt');
+    $("img.latexcenter,img.latex").replaceWith((index, el) => {
+        let latexSrc = $(el).attr("alt");
 
-        if (latexSrc.includes('[asy]')){
-            // Asymptote Raster  
-            return $(el).addClass('katex-image');
+        if (latexSrc.includes("[asy]")) {
+            // Asymptote Raster
+            return $(el).addClass("katex-image");
         }
 
-        latexSrc = latexSrc.replaceAll('$', '').replaceAll('\\[', '').replaceAll('\\]', '');
+        latexSrc = latexSrc
+            .replaceAll("$", "")
+            .replaceAll("\\[", "")
+            .replaceAll("\\]", "");
 
         let newEl;
 
         try {
             newEl = katex.renderToString(latexSrc, {
                 throwOnError: true,
-                displayMode: $(el).attr('class') == 'latexcenter'
+                displayMode: $(el).attr("class") == "latexcenter",
             });
         } catch (e) {
             if (e instanceof katex.ParseError) {
@@ -98,47 +107,58 @@ const parseKatex = (htmlString: string) => {
                 console.error(e);
             }
         }
-        
-        return $(newEl).addClass('katex-image');
+
+        return $(newEl).addClass("katex-image");
     });
 
     return $.html();
 };
 
 const listAllProblems = async () => {
-    let body, amc8 = [], amc10 = [], amc12 = [], aime = [];
+    let body,
+        amc8 = [],
+        amc10 = [],
+        amc12 = [],
+        aime = [];
 
     do {
-        let res = await got(api + "action=query&list=allpages&aplimit=max&format=json&apcontinue=" + (body?.continue?.apcontinue ?? ""));
+        let res = await got(
+            api +
+                "action=query&list=allpages&aplimit=max&format=json&apcontinue=" +
+                (body?.continue?.apcontinue ?? "")
+        );
         body = JSON.parse(res.body);
 
-        for (let page of body?.query?.allpages){
+        for (let page of body?.query?.allpages) {
             let { title } = page;
 
-            if (title.match(/^2\d{3} AIME I{1,2} Problems\/Problem \d+/)){
+            if (title.match(/^2\d{3} AIME I{1,2} Problems\/Problem \d+/)) {
                 aime.push(title);
                 continue;
             }
-            
-            if (title.match(/^2\d{3} AMC 8 Problems\/Problem \d+/)){
+
+            if (title.match(/^2\d{3} AMC 8 Problems\/Problem \d+/)) {
                 amc8.push(title);
                 continue;
             }
-            
-            if (title.match(/^2\d{3} AMC 10[AB] Problems\/Problem \d+/)){
+
+            if (title.match(/^2\d{3} AMC 10[AB] Problems\/Problem \d+/)) {
                 amc10.push(title);
                 continue;
             }
 
-            if (title.match(/^2\d{3} AMC 12[AB] Problems\/Problem \d+/)){
+            if (title.match(/^2\d{3} AMC 12[AB] Problems\/Problem \d+/)) {
                 amc12.push(title);
                 continue;
             }
         }
-    } while(body?.continue);
+    } while (body?.continue);
 
     return {
-        amc8, amc10, amc12, aime
+        amc8,
+        amc10,
+        amc12,
+        aime,
     };
 };
 
@@ -155,12 +175,11 @@ const listAllProblems = async () => {
     fs.writeFileSync('aimeProblems.json', JSON.stringify(aime, null, 4));
 })();
 
-
 **/
+
 (async () => {
-    const problem = await parseWikiProblem("2015 AIME I Problems/Problem 6");
-    console.log(problem.problem);
-    console.log("---")
+    const problem = await parseWikiProblem("2000 AMC 8 Problems/Problem 6");
     console.log(parseKatex(problem.problem));
 })();
+
 export { fetchWikiPage, parseWikiProblem, parseKatex, listAllProblems };
