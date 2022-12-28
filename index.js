@@ -106,7 +106,6 @@ const parseWikiProblem = async (page) => {
         return `<${element["0"].name}>${element.html()}</${element["0"].name}>`;
     })
         .join("");
-    console.log(wikiProblem);
     if (!wikiProblem) {
         console.log("Fetching failed for " + title + ", checking redirects...");
         const redirectPage = $(".redirectText a").attr("title");
@@ -122,7 +121,7 @@ const parseWikiProblem = async (page) => {
         category: categories?.[0]?.["*"] ?? null,
     };
 };
-const parseKatex = (htmlString) => {
+const renderKatexString = (htmlString) => {
     let $ = load(htmlString);
     $("img.latexcenter,img.latex").replaceWith((index, el) => {
         let latexSrc = $(el).attr("alt");
@@ -131,9 +130,10 @@ const parseKatex = (htmlString) => {
             return $(el).addClass("katex-image");
         }
         latexSrc = latexSrc
-            .replaceAll("$", "")
-            .replaceAll("\\[", "")
-            .replaceAll("\\]", "");
+            .replaceAll(/^\$|\$$/g, "")
+            .replaceAll("\[", "")
+            .replaceAll("\]", "")
+            .replaceAll(/{tabular}(\[\w\])*/g, "{array}");
         let newEl;
         try {
             newEl = katex.renderToString(latexSrc, {
@@ -197,4 +197,4 @@ const writeAllProblems = async (dir) => {
     fs.writeFileSync(dir + "amc12Problems.json", JSON.stringify(amc12, null, 4));
     fs.writeFileSync(dir + "aimeProblems.json", JSON.stringify(aime, null, 4));
 };
-export { fetchWikiPage, parseTitle, estimateDifficulty, parseWikiProblem, parseKatex, listAllProblems, writeAllProblems };
+export { fetchWikiPage, parseTitle, estimateDifficulty, parseWikiProblem, renderKatexString, listAllProblems, writeAllProblems };

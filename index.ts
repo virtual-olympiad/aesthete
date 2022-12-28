@@ -140,9 +140,7 @@ const parseWikiProblem = async (page: string) => {
             }>`;
         })
         .join("");
-
-    console.log(wikiProblem);
-
+    
     if (!wikiProblem) {
         console.log("Fetching failed for " + title + ", checking redirects...");
         const redirectPage = $(".redirectText a").attr("title");
@@ -160,7 +158,7 @@ const parseWikiProblem = async (page: string) => {
     };
 };
 
-const parseKatex = (htmlString: string) => {
+const renderKatexString = (htmlString: string) => {
     let $ = load(htmlString);
 
     $("img.latexcenter,img.latex").replaceWith((index, el) => {
@@ -172,9 +170,10 @@ const parseKatex = (htmlString: string) => {
         }
 
         latexSrc = latexSrc
-            .replaceAll("$", "")
-            .replaceAll("\\[", "")
-            .replaceAll("\\]", "");
+            .replaceAll(/^\$|\$$/g, "")
+            .replaceAll("\[", "")
+            .replaceAll("\]", "")
+            .replaceAll(/{tabular}(\[\w\])*/g, "{array}");
 
         let newEl;
 
@@ -262,7 +261,7 @@ export {
     parseTitle,
     estimateDifficulty,
     parseWikiProblem,
-    parseKatex,
+    renderKatexString,
     listAllProblems,
     writeAllProblems
 };
