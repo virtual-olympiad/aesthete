@@ -96,9 +96,7 @@ const contestDifficulties = {
     ],
 };
 
-const estimateDifficulty = (contest, title: string) => {
-    const { year, problemIndex } = parseTitle(contest, title);
-
+const estimateDifficulty = (contest, year, problemIndex) => {
     // Interpolate according to AoPS metrics
     let contestDiff = contestDifficulties[contest];
     for (let i = 0; i < contestDiff.length; ++i) {
@@ -155,7 +153,8 @@ const parseWikiProblem = async (page: string) => {
     }
 
     return {
-        title: title,
+        pageTitle: title,
+        link: "https://artofproblemsolving.com/wiki/index.php/" + page.replaceAll(" ", "_"),
         problem: wikiProblem,
         category: categories?.[0]?.["*"] ?? null,
     };
