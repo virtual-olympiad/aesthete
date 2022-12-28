@@ -28,6 +28,89 @@ const isInt = (str: string) => {
     );
 };
 
+const lerp = (p: number, a1: number, a2: number, b1: number, b2: number) => {
+    return b1 + ((p - a1) * (b2 - b1)) / (a2 - a1);
+};
+
+const parseTitle = (contest = "aime", title: string) => {
+    let match;
+
+    title.replaceAll("_", " ");
+
+    switch (contest) {
+        case "amc8":
+            match = title.match(/^(2\d{3}) (AMC 8) Problems\/Problem (\d+)/);
+            break;
+        case "amc10":
+            match = title.match(
+                /^(2\d{3}) (AMC 10[AB]) Problems\/Problem (\d+)/
+            );
+            break;
+        case "amc12":
+            match = title.match(
+                /^(2\d{3}) (AMC 12[AB]) Problems\/Problem (\d+)/
+            );
+            break;
+        case "aime":
+        default:
+            match = title.match(
+                /^(2\d{3}) (AIME I{1,2}) Problems\/Problem (\d+)/
+            );
+            break;
+    }
+
+    if (!match?.[3]) {
+        return null;
+    }
+
+    const [fullMatch, year, contestName, problemIndex, ...other] = match;
+
+    return {
+        year,
+        contestName,
+        problemIndex,
+    };
+};
+
+// https://artofproblemsolving.com/wiki/index.php/AoPS_Wiki:Competition_ratings
+const contestDifficulties = {
+    amc8: [
+        [1, 12, 1, 1.25],
+        [13, 25, 1.5, 2],
+    ],
+    amc10: [
+        [1, 10, 1, 2],
+        [11, 20, 2, 3],
+        [21, 25, 3.5, 4.5],
+    ],
+    amc12: [
+        [1, 10, 1.5, 2],
+        [11, 20, 2.5, 3.5],
+        [21, 25, 4.5, 6],
+    ],
+    aime: [
+        [1, 5, 3, 3.5],
+        [6, 9, 4, 4.5],
+        [10, 12, 5, 5.5],
+        [13, 15, 6, 7],
+    ],
+};
+
+const estimateDifficulty = (contest, title: string) => {
+    const { year, problemIndex } = parseTitle(contest, title);
+
+    // Interpolate according to AoPS metrics
+    let contestDiff = contestDifficulties[contest];
+    for (let i = 0; i < contestDiff.length; ++i) {
+        const c = contestDiff[i];
+        if (problemIndex <= c[1]) {
+            return lerp(problemIndex, c[0], c[1], c[2], c[3]);
+        }
+    }
+
+    // TODO: Older years are weighted easier?
+};
+
 const parseWikiProblem = async (page: string) => {
     const {
         title,
@@ -41,9 +124,9 @@ const parseWikiProblem = async (page: string) => {
     // :header:has(span:contains("Problem"))
     let problemHTML = $(".mw-parser-output")
         .children()
-        .not('.toc') // table of contents
-        .not('dl') // redirect message
-        .not(':header')
+        .not(".toc") // table of contents
+        .not("dl") // redirect message
+        .not(":header")
         .first()
         .nextUntil('p:has(a:contains("Solution")), :header, .toc')
         .addBack();
@@ -164,24 +247,23 @@ const listAllProblems = async () => {
     };
 };
 
-/** 
- * 
-(async () => {
+const writeAllProblems = async (dir) => {
     let problemCache = await listAllProblems();
     let { amc8, amc10, amc12, aime } = problemCache;
 
-    fs.writeFileSync('problems.json', JSON.stringify(problemCache, null, 4));
-    fs.writeFileSync('amc8Problems.json', JSON.stringify(amc8, null, 4));
-    fs.writeFileSync('amc10Problems.json', JSON.stringify(amc10, null, 4));
-    fs.writeFileSync('amc12Problems.json', JSON.stringify(amc12, null, 4));
-    fs.writeFileSync('aimeProblems.json', JSON.stringify(aime, null, 4));
-})();
+    fs.writeFileSync(dir + "problems.json", JSON.stringify(problemCache, null, 4));
+    fs.writeFileSync(dir + "amc8Problems.json", JSON.stringify(amc8, null, 4));
+    fs.writeFileSync(dir + "amc10Problems.json", JSON.stringify(amc10, null, 4));
+    fs.writeFileSync(dir + "amc12Problems.json", JSON.stringify(amc12, null, 4));
+    fs.writeFileSync(dir + "aimeProblems.json", JSON.stringify(aime, null, 4));
+};
 
-**/
-
-(async () => {
-    const problem = await parseWikiProblem("2005 AMC 10B Problems/Problem 19");
-    console.log(parseKatex(problem.problem));
-})();
-
-export { fetchWikiPage, parseWikiProblem, parseKatex, listAllProblems };
+export {
+    fetchWikiPage,
+    parseTitle,
+    estimateDifficulty,
+    parseWikiProblem,
+    parseKatex,
+    listAllProblems,
+    writeAllProblems
+};
