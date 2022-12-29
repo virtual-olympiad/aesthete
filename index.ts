@@ -106,7 +106,7 @@ const estimateDifficulty = (contest, year, problemIndex) => {
         }
     }
 
-    // TODO: Older years are weighted easier?
+    // TODO: Older years are weighted easier? (maybe bad for objectiveness, will have to decide)
 };
 
 const parseWikiProblem = async (page: string) => {
@@ -140,7 +140,7 @@ const parseWikiProblem = async (page: string) => {
             }>`;
         })
         .join("");
-    
+
     if (!wikiProblem) {
         console.log("Fetching failed for " + title + ", checking redirects...");
         const redirectPage = $(".redirectText a").attr("title");
@@ -152,10 +152,37 @@ const parseWikiProblem = async (page: string) => {
 
     return {
         pageTitle: title,
-        link: "https://artofproblemsolving.com/wiki/index.php/" + page.replaceAll(" ", "_"),
+        link:
+            "https://artofproblemsolving.com/wiki/index.php/" +
+            page.replaceAll(" ", "_"),
         problem: wikiProblem,
         category: categories?.[0]?.["*"] ?? null,
     };
+};
+
+const fetchProblemAnswer = async (year: number, contestName: string, problemIndex: number) => {
+    contestName.replaceAll(" ", "_");
+
+    // problem edge cases
+    if (year == 2012 && contestName == "AMC_12B" && problemIndex == 12){
+        return ['d', 'e'];
+    }
+
+    if (year == 2015 && contestName == "AMC_10A" && problemIndex == 20){
+        return 'b';
+    }
+
+    const page = `${year}_${contestName}_Answer_Key`;
+    const {
+        text: { "*": wikiPage },
+    } = await fetchWikiPage(page);
+
+    const $ = load(wikiPage);
+
+    return $(`.mw-parser-output`)
+        .find(`ol > li`)
+        .eq(problemIndex - 1)
+        .text().toLowerCase();
 };
 
 const renderKatexString = (htmlString: string) => {
@@ -171,8 +198,8 @@ const renderKatexString = (htmlString: string) => {
 
         latexSrc = latexSrc
             .replaceAll(/^\$|\$$/g, "")
-            .replaceAll("\[", "")
-            .replaceAll("\]", "")
+            .replaceAll(`\\[`, "")
+            .replaceAll(`\\]`, "")
             .replaceAll(/{tabular}(\[\w\])*/g, "{array}");
 
         let newEl;
@@ -184,7 +211,7 @@ const renderKatexString = (htmlString: string) => {
             });
         } catch (e) {
             if (e instanceof katex.ParseError) {
-                // Katex Parsing Error
+                // Katex Parsing Error, use original image
                 newEl = $(el).clone();
             } else {
                 console.error(e);
@@ -249,18 +276,21 @@ const writeAllProblems = async (dir) => {
     let problemCache = await listAllProblems();
     let { amc8, amc10, amc12, aime } = problemCache;
 
-    fs.writeFileSync(dir + "problems.json", JSON.stringify(problemCache, null, 4));
+    fs.writeFileSync(
+        dir + "problems.json",
+        JSON.stringify(problemCache, null, 4)
+    );
     fs.writeFileSync(dir + "amc8Problems.json", JSON.stringify(amc8, null, 4));
-    fs.writeFileSync(dir + "amc10Problems.json", JSON.stringify(amc10, null, 4));
-    fs.writeFileSync(dir + "amc12Problems.json", JSON.stringify(amc12, null, 4));
+    fs.writeFileSync(
+        dir + "amc10Problems.json",
+        JSON.stringify(amc10, null, 4)
+    );
+    fs.writeFileSync(
+        dir + "amc12Problems.json",
+        JSON.stringify(amc12, null, 4)
+    );
     fs.writeFileSync(dir + "aimeProblems.json", JSON.stringify(aime, null, 4));
 };
-
-(async ()=> {
-    const problem = await parseWikiProblem("2022_AMC_12B_Problems/Problem_25");
-
-    console.log(renderKatexString(problem.problem));
-})();
 
 export {
     fetchWikiPage,
@@ -269,5 +299,5 @@ export {
     parseWikiProblem,
     renderKatexString,
     listAllProblems,
-    writeAllProblems
+    writeAllProblems,
 };
