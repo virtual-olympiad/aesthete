@@ -127,7 +127,7 @@ const renderKatexString = (htmlString) => {
         let latexSrc = $(el).attr("alt");
         if (latexSrc.includes("[asy]")) {
             // Asymptote Raster
-            return $(el).addClass("katex-image");
+            return $(el).clone().addClass("katex-image");
         }
         latexSrc = latexSrc
             .replaceAll(/^\$|\$$/g, "")
@@ -144,7 +144,7 @@ const renderKatexString = (htmlString) => {
         catch (e) {
             if (e instanceof katex.ParseError) {
                 // Katex Parsing Error
-                newEl = $(el);
+                newEl = $(el).clone();
             }
             else {
                 console.error(e);
@@ -197,4 +197,8 @@ const writeAllProblems = async (dir) => {
     fs.writeFileSync(dir + "amc12Problems.json", JSON.stringify(amc12, null, 4));
     fs.writeFileSync(dir + "aimeProblems.json", JSON.stringify(aime, null, 4));
 };
+(async () => {
+    const problem = await parseWikiProblem("2022_AMC_12B_Problems/Problem_25");
+    console.log(renderKatexString(problem.problem));
+})();
 export { fetchWikiPage, parseTitle, estimateDifficulty, parseWikiProblem, renderKatexString, listAllProblems, writeAllProblems };
