@@ -215,4 +215,4 @@ const writeAllProblems = async (dir) => {
     fs.writeFileSync(dir + "amc12Problems.json", JSON.stringify(amc12, null, 4));
     fs.writeFileSync(dir + "aimeProblems.json", JSON.stringify(aime, null, 4));
 };
-export { fetchWikiPage, parseTitle, estimateDifficulty, parseWikiProblem, renderKatexString, listAllProblems, writeAllProblems, };
+export { fetchWikiPage, parseTitle, estimateDifficulty, fetchProblemAnswer, parseWikiProblem, renderKatexString, listAllProblems, writeAllProblems, };

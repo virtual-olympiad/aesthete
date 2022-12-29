@@ -296,6 +296,7 @@ export {
     fetchWikiPage,
     parseTitle,
     estimateDifficulty,
+    fetchProblemAnswer,
     parseWikiProblem,
     renderKatexString,
     listAllProblems,
