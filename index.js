@@ -96,7 +96,8 @@ const parseWikiProblem = async (page) => {
         .not(":header")
         .first()
         .nextUntil('p:has(a:contains("Solution")), :header, .toc')
-        .addBack();
+        .addBack()
+        .not("p:last-child > br:first-child"); // trailing line break
     let wikiProblem = Object.entries($(problemHTML))
         .map((el) => {
         if (!isInt(el[0])) {
