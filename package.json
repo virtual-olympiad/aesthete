@@ -1,10 +1,13 @@
 {
     "name": "aesthete",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "description": "Unofficial AoPS API wrapper and parser",
     "main": "./dist/index.js",
     "module": "./dist/index.mjs",
     "types": "./dist/index.d.ts",
+    "files": [
+        "dist"
+     ],
     "type": "module",
     "scripts": {
         "build": "tsup",

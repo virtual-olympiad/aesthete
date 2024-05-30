@@ -111,14 +111,14 @@ const estimateDifficulty = (contest: keyof typeof contestDifficulties, year: num
     // TODO: Older years are weighted easier? (maybe bad for objectiveness, will have to decide)
 };
 
-interface wikiProblem {
+interface WikiProblem {
     pageTitle: string;
     link: string;
     problem: string;
     category: string[];
 }
 
-async function parseWikiProblem (page: string): Promise<wikiProblem | null> {
+async function parseWikiProblem (page: string): Promise<WikiProblem | null> {
     const {
         title,
         text: { "*": wikiPage },
