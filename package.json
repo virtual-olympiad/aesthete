@@ -1,32 +1,39 @@
 {
-  "name": "vo-core",
-  "version": "1.6.2",
-  "description": "",
-  "main": "index.js",
-  "type": "module",
-  "scripts": {
-    "start": "node index.js",
-    "memoizeProblems": "node memoize.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Math-et-al/vo-core.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/Math-et-al/vo-core/issues"
-  },
-  "homepage": "https://github.com/Math-et-al/vo-core#readme",
-  "dependencies": {
-    "cheerio": "^1.0.0-rc.12",
-    "got": "^12.3.1",
-    "katex": "^0.16.0",
-    "typescript": "^4.7.4"
-  },
-  "devDependencies": {
-    "@types/node": "^18.11.18"
-  }
+    "name": "aesthete",
+    "version": "1.0.0",
+    "description": "Unofficial AoPS API wrapper and parser",
+    "main": "./dist/index.js",
+    "module": "./dist/index.mjs",
+    "types": "./dist/index.d.ts",
+    "type": "module",
+    "scripts": {
+        "build": "tsup",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/virtual-olympiad/aesthete.git"
+    },
+    "keywords": [
+        "aops",
+        "art-of-problem-solving",
+        "virtual-olympiad"
+    ],
+    "author": "polarity",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/virtual-olympiad/aesthete/issues"
+    },
+    "homepage": "https://github.com/virtual-olympiad/aesthete#readme",
+    "dependencies": {
+        "cheerio": "^1.0.0-rc.12",
+        "got": "^12.3.1",
+        "katex": "^0.16.0",
+        "typescript": "^4.7.4"
+    },
+    "devDependencies": {
+        "@types/katex": "^0.16.7",
+        "@types/node": "^18.11.18",
+        "tsup": "^8.0.2"
+    }
 }

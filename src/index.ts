@@ -2,6 +2,8 @@ import got from "got";
 import { load } from "cheerio";
 import katex from "katex";
 
+import type { Element } from "cheerio";
+
 /** 
 interface Problem {
     exam: string;
@@ -22,7 +24,7 @@ const fetchWikiPage = async (page: string) => {
 
 const isInt = (str: string) => {
     return (
-        !isNaN(str) &&
+        !isNaN(+str) &&
         !isNaN(parseFloat(str)) &&
         Number.isInteger(parseFloat(str))
     );
@@ -96,9 +98,9 @@ const contestDifficulties = {
     ],
 };
 
-const estimateDifficulty = (contest, year, problemIndex) => {
+const estimateDifficulty = (contest: keyof typeof contestDifficulties, year: number, problemIndex: number) => {
     // Interpolate according to AoPS metrics
-    let contestDiff = contestDifficulties[contest];
+    let contestDiff = contestDifficulties[contest] as number[][];
     for (let i = 0; i < contestDiff.length; ++i) {
         const c = contestDiff[i];
         if (problemIndex <= c[1]) {
@@ -109,7 +111,14 @@ const estimateDifficulty = (contest, year, problemIndex) => {
     // TODO: Older years are weighted easier? (maybe bad for objectiveness, will have to decide)
 };
 
-const parseWikiProblem = async (page: string) => {
+interface wikiProblem {
+    pageTitle: string;
+    link: string;
+    problem: string;
+    category: string[];
+}
+
+async function parseWikiProblem (page: string): Promise<wikiProblem | null> {
     const {
         title,
         text: { "*": wikiPage },
@@ -136,8 +145,8 @@ const parseWikiProblem = async (page: string) => {
                 return "";
             }
             let element = $(el[1]);
-            return `<${element["0"].name}>${element.html()}</${
-                element["0"].name
+            return `<${(element["0"] as Element).name}>${element.html()}</${
+                (element["0"] as Element).name
             }>`;
         })
         .join("");
@@ -148,7 +157,8 @@ const parseWikiProblem = async (page: string) => {
         if (redirectPage) {
             return await parseWikiProblem(redirectPage);
         }
-        return;
+        console.log("No redirects found for " + title + ".");
+        return null;
     }
 
     return {
@@ -190,7 +200,7 @@ const renderKatexString = (htmlString: string) => {
     let $ = load(htmlString);
 
     $("img.latexcenter,img.latex").replaceWith((index, el) => {
-        let latexSrc = $(el).attr("alt");
+        let latexSrc = $(el).attr("alt") as string;
 
         if (latexSrc.includes("[asy]")) {
             // Asymptote Raster
@@ -273,26 +283,6 @@ const listAllProblems = async () => {
     };
 };
 
-const writeAllProblems = async (dir) => {
-    let problemCache = await listAllProblems();
-    let { amc8, amc10, amc12, aime } = problemCache;
-
-    fs.writeFileSync(
-        dir + "problems.json",
-        JSON.stringify(problemCache, null, 4)
-    );
-    fs.writeFileSync(dir + "amc8Problems.json", JSON.stringify(amc8, null, 4));
-    fs.writeFileSync(
-        dir + "amc10Problems.json",
-        JSON.stringify(amc10, null, 4)
-    );
-    fs.writeFileSync(
-        dir + "amc12Problems.json",
-        JSON.stringify(amc12, null, 4)
-    );
-    fs.writeFileSync(dir + "aimeProblems.json", JSON.stringify(aime, null, 4));
-};
-
 export {
     fetchWikiPage,
     parseTitle,
@@ -301,5 +291,4 @@ export {
     parseWikiProblem,
     renderKatexString,
     listAllProblems,
-    writeAllProblems,
 };
