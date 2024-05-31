@@ -41,22 +41,22 @@ const parseTitle = (contest = "aime", title: string) => {
 
     switch (contest) {
         case "amc8":
-            match = title.match(/^(2\d{3}) (AMC 8) Problems\/Problem (\d+)/);
+            match = title.match(/^(2\d{3}) ((?:\w* |)AMC 8) Problems\/Problem (\d+)/);
             break;
         case "amc10":
             match = title.match(
-                /^(2\d{3}) (AMC 10[AB]) Problems\/Problem (\d+)/
+                /^(2\d{3}) ((?:\w* |)AMC 10[AB]) Problems\/Problem (\d+)/
             );
             break;
         case "amc12":
             match = title.match(
-                /^(2\d{3}) (AMC 12[AB]) Problems\/Problem (\d+)/
+                /^(2\d{3}) ((?:\w* |)AMC 12[AB]) Problems\/Problem (\d+)/
             );
             break;
         case "aime":
         default:
             match = title.match(
-                /^(2\d{3}) (AIME I{1,2}) Problems\/Problem (\d+)/
+                /^(2\d{3}) ((?:\w* |)AIME I{1,2}) Problems\/Problem (\d+)/
             );
             break;
     }
@@ -253,22 +253,22 @@ const listAllProblems = async () => {
         for (let page of body?.query?.allpages) {
             let { title } = page;
 
-            if (title.match(/^2\d{3} AIME I{1,2} Problems\/Problem \d+/)) {
+            if (title.match(/^2\d{3} (?:\w* |)AIME I{1,2} Problems\/Problem \d+/)) {
                 aime.push(title);
                 continue;
             }
 
-            if (title.match(/^2\d{3} AMC 8 Problems\/Problem \d+/)) {
+            if (title.match(/^2\d{3} (?:\w* |)AMC 8 Problems\/Problem \d+/)) {
                 amc8.push(title);
                 continue;
             }
 
-            if (title.match(/^2\d{3} AMC 10[AB] Problems\/Problem \d+/)) {
+            if (title.match(/^2\d{3} (?:\w* |)AMC 10[AB] Problems\/Problem \d+/)) {
                 amc10.push(title);
                 continue;
             }
 
-            if (title.match(/^2\d{3} AMC 12[AB] Problems\/Problem \d+/)) {
+            if (title.match(/^2\d{3} (?:\w* |)AMC 12[AB] Problems\/Problem \d+/)) {
                 amc12.push(title);
                 continue;
             }
