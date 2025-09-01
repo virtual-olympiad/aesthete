@@ -196,11 +196,13 @@ const fetchProblemAnswer = async (year: number, contestName: string, problemInde
         .text().toLowerCase();
 };
 
-const renderKatexString = (htmlString: string) => {
+const serializeLatexString = (htmlString: string) => {
     let $ = load(htmlString);
 
     $("img.latexcenter,img.latex").replaceWith((index, el) => {
         let latexSrc = $(el).attr("alt") as string;
+
+        latexSrc = latexSrc.replace(/&nbsp;/g, ' ');
 
         if (latexSrc.includes("[asy]")) {
             // Asymptote Raster
@@ -213,12 +215,43 @@ const renderKatexString = (htmlString: string) => {
             .replaceAll(`\\]`, "")
             .replaceAll(/{tabular}(\[\w\])*/g, "{array}");
 
+        let newEl = $('<latex></latex>');
+
+        newEl.text(latexSrc);
+        newEl.attr("center", String(Number($(el).attr("class") == "latexcenter")));
+
+        try {
+            katex.renderToString(latexSrc, {
+                throwOnError: true,
+                displayMode: $(el).attr("class") == "latexcenter",
+            });
+        } catch (e) {
+            if (e instanceof katex.ParseError) {
+                // Katex Parsing Error, use original image
+                newEl = $(el).clone().addClass("katex-image");
+            } else {
+                console.error(e);
+            }
+        }
+
+        return newEl;
+    });
+
+    return $.html();
+};
+
+const renderKatexString = (htmlString: string) => {
+    let $ = load(htmlString);
+
+    $("latex").replaceWith((index, el) => {
+        let latexSrc = $(el).text() as string;
+
         let newEl;
 
         try {
             newEl = katex.renderToString(latexSrc, {
                 throwOnError: true,
-                displayMode: $(el).attr("class") == "latexcenter",
+                displayMode: $(el).attr("center") === "1",
             });
         } catch (e) {
             if (e instanceof katex.ParseError) {
@@ -289,6 +322,7 @@ export {
     estimateDifficulty,
     fetchProblemAnswer,
     parseWikiProblem,
+    serializeLatexString,
     renderKatexString,
     listAllProblems,
 };
