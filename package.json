@@ -1,6 +1,6 @@
 {
     "name": "aesthete",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "description": "Unofficial AoPS API wrapper and parser",
     "main": "./dist/index.js",
     "module": "./dist/index.mjs",
